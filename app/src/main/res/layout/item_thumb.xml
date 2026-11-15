@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="116dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_card"
+    android:padding="5dp">
+
+    <ImageView
+        android:id="@+id/ivThumb"
+        android:layout_width="106dp"
+        android:layout_height="164dp"
+        android:layout_gravity="center_horizontal"
+        android:background="@color/thumbBg"
+        android:contentDescription="壁纸缩略图"
+        android:scaleType="centerCrop" />
+
+    <CheckBox
+        android:id="@+id/cbMark"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="待删除"
+        android:textColor="@color/danger"
+        android:textSize="11sp" />
+
+    <TextView
+        android:id="@+id/tvThumbBadge"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:text="保留"
+        android:textColor="@color/safe"
+        android:textSize="10sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvThumbName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:text="wallpaper.jpg"
+        android:textColor="@color/textPrimary"
+        android:textSize="10sp" />
+
+    <TextView
+        android:id="@+id/tvThumbMeta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:text="1080×2400 · 1.2 MB"
+        android:textColor="@color/textSecondary"
+        android:textSize="9sp" />
+
+</LinearLayout>

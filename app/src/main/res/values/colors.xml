@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="windowBg">#F4F6F9</color>
+    <color name="cardBg">#FFFFFFFF</color>
+    <color name="textPrimary">#1E2430</color>
+    <color name="textSecondary">#6B7280</color>
+    <color name="accent">#3F6FB5</color>
+    <color name="accentDark">#2C4F86</color>
+    <color name="divider">#E2E6EC</color>
+    <color name="thumbBg">#E9EDF3</color>
+    <color name="danger">#C0392B</color>
+    <color name="safe">#237A55</color>
+</resources>

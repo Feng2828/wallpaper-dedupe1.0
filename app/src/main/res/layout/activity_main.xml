@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/windowBg"
+    android:fitsSystemWindows="true"
+    android:padding="12dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="壁纸查重 · 只读工具"
+        android:textColor="@color/textPrimary"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
+        android:text="仅生成待删除清单，程序绝不删除任何文件；无网络权限，全部计算在本机完成。"
+        android:textColor="@color/textSecondary"
+        android:textSize="11sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnAddTree"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="@color/accent"
+            android:text="添加目录"
+            android:textColor="#FFFFFFFF"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btnMediaScan"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:text="全部图片"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btnClearTrees"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:text="清空目录"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvFolders"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:maxLines="3"
+        android:ellipsize="end"
+        android:text="当前来源：SAF 目录（未选择）"
+        android:textColor="@color/textSecondary"
+        android:textSize="11sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="相似度阈值（越低越宽松）"
+            android:textColor="@color/textPrimary"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvThreshold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="82%"
+            android:textColor="@color/accent"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <SeekBar
+        android:id="@+id/sbThreshold"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="38"
+        android:progress="22" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="60% 极宽松 / 82% 推荐（含调色·裁剪变体） / 95% 仅近乎完全相同。调整后点「仅重新分组」生效，无需重新解码图片。"
+        android:textColor="@color/textSecondary"
+        android:textSize="10sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnScan"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:backgroundTint="@color/accent"
+            android:text="开始查重"
+            android:textColor="#FFFFFFFF"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btnRegroup"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:text="仅重新分组"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btnClearMarks"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:text="清空勾选"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/pbProgress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:max="100"
+        android:progress="0" />
+
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:text="就绪。先添加壁纸所在目录，再点「开始查重」。"
+        android:textColor="@color/textSecondary"
+        android:textSize="11sp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvGroups"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:scrollbars="vertical" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnExport"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.2"
+            android:backgroundTint="@color/safe"
+            android:text="生成待删除清单"
+            android:textColor="#FFFFFFFF"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvMarked"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical|end"
+            android:text="已勾选 0 项"
+            android:textColor="@color/textPrimary"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+</LinearLayout>

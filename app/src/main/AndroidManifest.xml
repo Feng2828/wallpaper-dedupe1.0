@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      权限说明：
+      1) SAF 目录树授权（ACTION_OPEN_DOCUMENT_TREE）不需要任何存储权限，本应用主流程零权限。
+      2) 下面两个权限仅服务于可选的「扫描全部图片」(MediaStore) 入口：
+         Android 13+ 使用 READ_MEDIA_IMAGES；Android 12 及以下使用 READ_EXTERNAL_STORAGE。
+      3) 本应用刻意不声明 INTERNET 权限，也不声明任何 WRITE / DELETE 相关权限，
+         无法联网、无法写入或删除用户文件，只生成纯文本清单。
+    -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>
