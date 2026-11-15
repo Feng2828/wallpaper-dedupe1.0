@@ -17,12 +17,10 @@ jobs:
           java-version: 17
           cache: gradle
 
-      - name: 自动修复gradle wrapper（补齐gradle-wrapper.jar）
-        uses: gradle/wrapper-validation-action@v3
-        continue-on-error: true
-
-      - name: 给gradlew执行权限
-        run: chmod +x gradlew
+      - name: 重新生成完整gradle wrapper
+        run: |
+          ./gradlew wrapper
+          chmod +x gradlew
 
       - name: 编译 Debug APK
         run: ./gradlew assembleDebug --no-daemon
