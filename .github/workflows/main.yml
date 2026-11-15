@@ -15,28 +15,21 @@ jobs:
       - name: 检出源码
         uses: actions/checkout@v4
 
-      - name: 配置 JDK 17
+      - name: 配置 JDK17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
-          cache: gradle
 
-      - name: 修复gradlew换行符 + 赋予执行权限
-        run: |
-          sed -i 's/\r$//' gradlew
-          chmod +x gradlew
-
-      - name: 自动补齐gradle-wrapper.jar
-        run: |
-          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
-            curl -L -o gradle/wrapper/gradle-wrapper.jar https://services.gradle.org/distributions/gradle-8.7-wrapper.jar
-          fi
+      - name: Gradle官方Action（自动处理wrapper、权限、依赖缓存）
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: wrapper
 
       - name: 编译Debug APK
         run: ./gradlew assembleDebug --no-daemon
 
-      - name: 上传APK产物
+      - name: 上传APK
         uses: actions/upload-artifact@v4
         with:
           name: wallpaper-dedupe-debug-apk
