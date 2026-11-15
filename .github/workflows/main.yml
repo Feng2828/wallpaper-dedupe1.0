@@ -21,10 +21,10 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Gradle官方Action（自动处理wrapper、权限、依赖缓存）
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: wrapper
+      - name: 修复gradlew换行符 + 添加执行权限
+        run: |
+          sed -i 's/\r$//' gradlew
+          chmod +x gradlew
 
       - name: 编译Debug APK
         run: ./gradlew assembleDebug --no-daemon
