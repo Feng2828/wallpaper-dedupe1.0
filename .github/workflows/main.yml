@@ -1,165 +1,45 @@
-# =============================================================================
-# 壁纸查重 APP · Android 云端自动编译
-#   触发：push 到 main/master、PR、手动触发
-#   产物：debug 版 APK（debug 签名，可直接安装）→ Artifact 制品
-#   适配：标准 Android Gradle 项目 / Java / Redmi K60E · HyperOS 2
-#   环境：JDK 17 + compileSdk 34 + build-tools 34.0.0 + AGP 8.5.2 + Gradle 8.7
-#
-# 改项目时只需改 3 处：
-#   1) 分支名（on.push.branches / on.pull_request.branches）
-#   2) SDK 版本（「安装 SDK 平台与构建工具」里的 android-34 / 34.0.0）
-#   3) 模块名（默认是单模块 app/；多模块时改「整理产物」里的查找路径）
-# =============================================================================
-name: Android CI - Build Debug APK
-
+name: Build Wallpaper-Dedupe Debug APK
 on:
   push:
     branches: [ main, master ]
-    tags: [ 'v*' ]
-  pull_request:
-    branches: [ main, master ]
   workflow_dispatch:
 
-# 同一分支连续推送时，只保留最新一次构建，节省 Actions 额度
 concurrency:
-  group: android-build-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
-permissions:
-  contents: read
 
 jobs:
   build:
-    name: 编译 Debug APK
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-
     steps:
       - name: 检出源码
         uses: actions/checkout@v4
 
-      - name: 安装 JDK 17
+      - name: 配置 JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: 17
+          cache: gradle
 
-      - name: 配置 Android SDK 命令行工具
-        uses: android-actions/setup-android@v3
-
-      - name: 安装 SDK 平台与构建工具
+      - name: 修复gradlew换行符 + 赋予执行权限
         run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager --install "platforms;android-34" "build-tools;34.0.0" "platform-tools" > /dev/null
-          sdkmanager --list_installed > /dev/null 2>&1 || true
+          sed -i 's/\r$//' gradlew
+          chmod +x gradlew
 
-      # 标准 Android 项目自带 gradle-wrapper.jar，直接用 ./gradlew（按项目
-      # gradle-wrapper.properties 里声明的版本自动下载 Gradle，通用性最好）。
-      # 本项目为纯文本源码交付、未提交二进制 jar，所以在此自动补齐：
-      #   Gradle 官方仓库拉取 → 失败则降级下载完整 Gradle 8.7 发行版。
-      - name: 准备 Gradle（自动补齐 wrapper）
-        shell: bash
+      - name: 自动补齐gradle-wrapper.jar
         run: |
-          set -euo pipefail
-          JAR=gradle/wrapper/gradle-wrapper.jar
-          mkdir -p gradle/wrapper
-
-          # Windows 提交的 gradlew 可能带 CRLF，统一转换为 LF
-          sed -i 's/\r$//' gradlew 2>/dev/null || true
-          chmod +x gradlew 2>/dev/null || true
-
-          wrapper_ok() {
-            [ -s "$1" ] || return 1
-            unzip -l "$1" > "$RUNNER_TEMP/jarlist.txt" 2>/dev/null || return 1
-            grep -q 'GradleWrapperMain.class' "$RUNNER_TEMP/jarlist.txt"
-          }
-
-          if wrapper_ok "$JAR"; then
-            echo "[gradle] 使用仓库自带的 Gradle Wrapper"
-            echo "GRADLE_CMD=./gradlew" >> "$GITHUB_ENV"
-            exit 0
+          if [ ! -f gradle/wrapper/gradle-wrapper.jar ]; then
+            curl -L -o gradle/wrapper/gradle-wrapper.jar https://services.gradle.org/distributions/gradle-8.7-wrapper.jar
           fi
 
-          echo "[gradle] 缺少 gradle-wrapper.jar，从 Gradle 官方仓库获取"
-          curl -fsSL --retry 3 -o "$JAR" \
-            https://raw.githubusercontent.com/gradle/gradle/v8.7.0/gradle/wrapper/gradle-wrapper.jar || true
+      - name: 编译Debug APK
+        run: ./gradlew assembleDebug --no-daemon
 
-          if wrapper_ok "$JAR"; then
-            echo "GRADLE_CMD=./gradlew" >> "$GITHUB_ENV"
-          else
-            echo "[gradle] 降级：下载完整 Gradle 8.7 发行版"
-            rm -f "$JAR"
-            curl -fsSL --retry 3 -o "$RUNNER_TEMP/gradle.zip" \
-              https://services.gradle.org/distributions/gradle-8.7-bin.zip
-            unzip -q -o "$RUNNER_TEMP/gradle.zip" -d "$RUNNER_TEMP/gradle-dist"
-            chmod +x "$RUNNER_TEMP/gradle-dist/gradle-8.7/bin/gradle"
-            echo "GRADLE_CMD=$RUNNER_TEMP/gradle-dist/gradle-8.7/bin/gradle" >> "$GITHUB_ENV"
-          fi
-
-      - name: 配置 Gradle 依赖缓存
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          validate-wrappers: false
-
-      - name: 编译 Debug APK
-        shell: bash
-        run: $GRADLE_CMD assembleDebug --no-daemon --stacktrace
-
-      - name: 整理产物并输出校验信息
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p apk-out
-          # 先落盘再取首行：避免 pipefail 下 `find | head` 触发 SIGPIPE 误判失败
-          find app/build/outputs/apk -type f -name "*.apk" ! -name "*unsigned*" \
-            | sort > "$RUNNER_TEMP/apklist.txt"
-          APK=$(head -n 1 "$RUNNER_TEMP/apklist.txt")
-          if [ -z "$APK" ]; then
-            echo "::error::未找到编译产物 APK，请检查 assembleDebug 日志"
-            exit 1
-          fi
-          SHORT_SHA="${GITHUB_SHA::7}"
-          OUT="apk-out/WallpaperDedupe-debug-${SHORT_SHA}.apk"
-          cp "$APK" "$OUT"
-          echo "源产物: $APK"
-          ls -lh "$OUT"
-          sha256sum "$OUT"
-          {
-            echo "### Debug APK 构建完成"
-            echo ""
-            echo "- 制品：\`$OUT\`"
-            echo "- 大小：$(du -h "$OUT" | cut -f1)"
-            echo "- 提交：\`$SHORT_SHA\`"
-            echo ""
-            echo "在本次运行页底部 **Artifacts** 区下载 \`wallpaper-dedupe-debug-apk\` 即可安装。"
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      - name: 上传 APK Artifact 制品
+      - name: 上传APK产物
         uses: actions/upload-artifact@v4
         with:
           name: wallpaper-dedupe-debug-apk
-          path: apk-out/*.apk
-          if-no-files-found: error
+          path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
-
-  # 可选：打 v* 标签时，额外把同一个 APK 挂到 GitHub Release，
-  # 方便手机浏览器直接下载（Artifact 需要登录 GitHub 才能下载）。
-  release:
-    name: 发布 Release（仅 v* 标签）
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: 下载 APK 制品
-        uses: actions/download-artifact@v4
-        with:
-          name: wallpaper-dedupe-debug-apk
-          path: apk-out
-
-      - name: 创建 Release 并附上 APK
-        uses: softprops/action-gh-release@v2
-        with:
-          files: apk-out/*.apk
-          generate_release_notes: true
+          if-no-files-found: error
