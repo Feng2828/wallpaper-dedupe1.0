@@ -27,14 +27,28 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: 安装 Android SDK 命令行工具
-        uses: android-actions/setup-android@v3
-
-      - name: 安装 SDK 平台与构建工具
+      # ubuntu-latest 镜像已预装 Android SDK 与 sdkmanager，无需额外安装命令行工具。
+      # 注意：不要再引入 android-actions 的 setup-android v3，它会安装已下架的 tools 包导致失败。
+      - name: 检查 Android SDK 并按需安装构建平台
         shell: bash
         run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager --install "platforms;android-34" "build-tools;34.0.0" "platform-tools"
+          export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          export ANDROID_SDK_ROOT="$ANDROID_HOME"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          SDKMANAGER=$(command -v sdkmanager 2>/dev/null || true)
+          if [ -z "$SDKMANAGER" ]; then
+            SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -1)
+          fi
+          if [ -n "$SDKMANAGER" ]; then
+            chmod +x "$SDKMANAGER" || true
+            yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+            "$SDKMANAGER" --install "platforms;android-34" "build-tools;34.0.0" "platform-tools" || true
+            echo "[sdk] 平台检查完成"
+          else
+            echo "[sdk] 未找到 sdkmanager，直接使用 runner 预装 SDK"
+          fi
+          echo "--- 已安装的平台 ---"
+          ls "$ANDROID_HOME/platforms" 2>/dev/null || true
 
       # gradle-wrapper.jar 是二进制文件，未随源码上传。
       # 先在仓库里找；找不到就从 Gradle 官方仓库下载并校验。
@@ -45,6 +59,11 @@ jobs:
           set -e
           mkdir -p gradle/wrapper
           JAR=gradle/wrapper/gradle-wrapper.jar
+          # 若 jar 被误传到嵌套目录（gradle/wrapper/gradle/wrapper/），挪回正确位置
+          if [ ! -s "$JAR" ] && [ -s gradle/wrapper/gradle/wrapper/gradle-wrapper.jar ]; then
+            cp gradle/wrapper/gradle/wrapper/gradle-wrapper.jar "$JAR"
+            echo "[gradle] 已从嵌套目录修正 jar 位置"
+          fi
           if [ ! -s "$JAR" ]; then
             curl -fsSL --retry 3 -o "$JAR" \
               https://raw.githubusercontent.com/gradle/gradle/v8.7.0/gradle/wrapper/gradle-wrapper.jar || true
