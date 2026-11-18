@@ -286,7 +286,7 @@ public class MainActivity extends Activity implements GroupAdapter.MarksListener
         running = true;
         cancel.set(false);
         btnScan.setText("停止");
-        setProgress(0);
+        setScanProgress(0);
         final float threshold = currentThreshold();
         final int src = source;
         final List<Uri> snapshot = new ArrayList<>(trees);
@@ -331,7 +331,7 @@ public class MainActivity extends Activity implements GroupAdapter.MarksListener
                             final int pct = d * 55 / total;
                             ui(() -> {
                                 setStatus("提取图像特征 " + d + " / " + total);
-                                setProgress(pct);
+                                setScanProgress(pct);
                             });
                         }
                     }
@@ -352,7 +352,7 @@ public class MainActivity extends Activity implements GroupAdapter.MarksListener
                             final int pct = (int) (55L + 45L * done / Math.max(1, pairs));
                             ui(() -> {
                                 setStatus(msg);
-                                setProgress(pct);
+                                setScanProgress(pct);
                             });
                         }, cancel);
 
@@ -363,7 +363,7 @@ public class MainActivity extends Activity implements GroupAdapter.MarksListener
                 ui(() -> {
                     groups = result;
                     adapter.setGroups(result);
-                    setProgress(100);
+                    setScanProgress(100);
                     setStatus("完成：" + data.size() + " 张图片，阈值 "
                             + (int) (threshold * 100) + "%，发现 " + result.size() + " 组相似壁纸");
                     updateMarkedCount();
@@ -510,7 +510,9 @@ public class MainActivity extends Activity implements GroupAdapter.MarksListener
         tvStatus.setText(s);
     }
 
-    private void setProgress(int p) {
+    // 注意：不能命名为 setProgress —— Activity 父类有 public final setProgress(int)，
+    // 子类用相同签名会触发 "overridden method is final" 编译错误。
+    private void setScanProgress(int p) {
         pbProgress.setProgress(Math.max(0, Math.min(100, p)));
     }
 
